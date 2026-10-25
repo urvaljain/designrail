@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "tokens": {
+    "color.action": { "type": "color", "value": "{color.brand}" },
+    "color.loop-a": { "type": "color", "value": "{color.loop-b}" },
+    "color.loop-b": { "type": "color", "value": "{color.loop-a}" }
+  }
+}

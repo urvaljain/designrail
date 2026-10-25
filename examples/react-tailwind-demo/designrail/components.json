@@ -1,0 +1,62 @@
+{
+  "$comment": "Registered components. Add entries with `designrail add-component <Name> <path>`. Variants are only what you list.",
+  "schemaVersion": 1,
+  "components": [
+    {
+      "id": "button",
+      "exportName": "Button",
+      "sourceFile": "src/components/ui/button.tsx",
+      "importSpecifier": "@/components/ui/button",
+      "exportKind": "named",
+      "description": "Action button.",
+      "usage": "Use variant=\"secondary\" for non-primary actions.",
+      "variants": [
+        "primary",
+        "secondary"
+      ],
+      "replaces": [
+        "button"
+      ],
+      "implementationFiles": [],
+      "importPolicy": {
+        "alternateSpecifiers": [],
+        "restricted": []
+      }
+    },
+    {
+      "id": "card",
+      "exportName": "Card",
+      "sourceFile": "src/components/ui/card.tsx",
+      "importSpecifier": "@/components/ui/card",
+      "exportKind": "named",
+      "description": "Titled content section.",
+      "usage": "Wrap related settings; pass title and optional description.",
+      "replaces": [],
+      "implementationFiles": [],
+      "importPolicy": {
+        "alternateSpecifiers": [],
+        "restricted": []
+      }
+    },
+    {
+      "id": "input",
+      "exportName": "Input",
+      "sourceFile": "src/components/ui/input.tsx",
+      "importSpecifier": "@/components/ui/input",
+      "exportKind": "named",
+      "description": "Labeled text input.",
+      "usage": "Always pass id and label; use hint for help text.",
+      "replaces": [
+        "input[type=text]",
+        "input[type=email]",
+        "input[type=password]",
+        "input[type=search]"
+      ],
+      "implementationFiles": [],
+      "importPolicy": {
+        "alternateSpecifiers": [],
+        "restricted": []
+      }
+    }
+  ]
+}

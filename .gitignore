@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+*.tgz
+.DS_Store
+.vitest/
+examples/*/node_modules/
+examples/*/dist/
+examples/*/designrail/reports/*
+!examples/*/designrail/reports/.gitkeep

@@ -1,0 +1,37 @@
+{
+  "$comment": "Expected results when each file in fixtures/ is copied into src/fixtures/ (or src/features/billing/) of this demo. Verified by tests/integration/demo-fixtures.test.ts.",
+  "rules/colors.tsx": { "status": "fail", "findings": ["DR001 error 7:21", "DR001 error 8:21", "DR001 error 9:19"], "unsupported": [] },
+  "rules/spacing.tsx": { "status": "fail", "findings": ["DR002 error 6:23", "DR002 error 7:23", "DR002 error 8:21"], "unsupported": [] },
+  "rules/raw-button.tsx": { "status": "fail", "findings": ["DR004 error 8:7"], "unsupported": [] },
+  "rules/images.tsx": { "status": "fail", "findings": ["DR006 error 5:7"], "unsupported": [] },
+  "rules/labels.tsx": { "status": "fail", "findings": ["DR007 error 12:7", "DR007 error 13:7"], "unsupported": [] },
+  "rules/dynamic-classes.tsx": { "status": "pass", "findings": [], "unsupported": ["partial-class 8:55", "dynamic-class 8:62", "dynamic-class 8:70"] },
+  "rules/import-aliases.tsx": { "status": "pass", "findings": ["DR008 warning 3:1"], "unsupported": [] },
+  "rules/malformed.tsx": { "status": "incomplete", "findings": [], "unsupported": [], "parseFailure": "4:1" },
+  "ai-output/BillingPanel.tsx": {
+    "status": "fail",
+    "findings": [
+      "DR008 warning 5:1",
+      "DR001 error 11:32",
+      "DR002 error 11:41",
+      "DR002 error 11:70",
+      "DR001 error 11:85",
+      "DR006 error 12:7",
+      "DR001 error 13:44",
+      "DR001 error 14:30",
+      "DR004 error 15:7",
+      "DR007 error 15:7",
+      "DR002 error 20:20",
+      "DR002 error 20:43",
+      "DR002 error 20:48",
+      "DR004 error 22:7",
+      "DR001 error 22:26",
+      "DR002 error 22:38",
+      "DR002 error 22:43",
+      "DR001 error 22:48",
+      "DR003 error 26:19"
+    ],
+    "unsupported": []
+  },
+  "corrected/BillingPanel.tsx": { "status": "pass", "findings": [], "unsupported": [] }
+}

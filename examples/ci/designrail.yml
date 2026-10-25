@@ -1,0 +1,32 @@
+# Example GitHub Actions workflow for a project that uses DesignRail.
+# DesignRail must be installed as a devDependency so CI runs the version pinned in your lockfile.
+# Copy to .github/workflows/designrail.yml and adjust the package manager steps to match your project.
+name: DesignRail
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  design-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24.x"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Fails (exit 1) when the generated AI instructions are out of date.
+      - run: pnpm exec designrail sync --check
+      # Fails (exit 1) on errors; add --strict to fail on warnings too. Exit 2 means a setup problem.
+      - run: pnpm exec designrail check --output designrail-report.json
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: designrail-report
+          path: designrail-report.json
+          if-no-files-found: ignore

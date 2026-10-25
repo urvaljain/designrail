@@ -1,0 +1,19 @@
+{
+  "color": {
+    "$type": "color",
+    "brand": { "$value": "#2563eb", "$description": "Primary brand color" },
+    "primary": { "$value": "{color.brand}" },
+    "object": { "$value": { "colorSpace": "srgb", "components": [0, 0, 1], "hex": "#0000ff" } }
+  },
+  "spacing": {
+    "$type": "dimension",
+    "md": { "$value": "16px" },
+    "lg": { "$value": { "value": 24, "unit": "px" } }
+  },
+  "size": { "icon": { "$type": "dimension", "$value": "20px" } },
+  "font": {
+    "family": { "body": { "$type": "fontFamily", "$value": ["Inter", "sans-serif"] } },
+    "weight": { "bold": { "$type": "fontWeight", "$value": 700 } }
+  },
+  "motion": { "fast": { "$type": "duration", "$value": "100ms" } }
+}
