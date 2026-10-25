@@ -1,0 +1,72 @@
+{
+  "name": "designrail",
+  "version": "0.1.0",
+  "description": "Keep AI-generated UI consistent with your design system.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "designrail": "dist/cli/bin.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": "^22.18.0 || >=24.11.0"
+  },
+  "packageManager": "pnpm@10.28.0",
+  "keywords": [
+    "design-system",
+    "design-tokens",
+    "ai",
+    "cli",
+    "react",
+    "tailwind",
+    "lint",
+    "agents"
+  ],
+  "scripts": {
+    "build": "node scripts/clean.mjs dist && tsc -p tsconfig.build.json && node scripts/postbuild.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "check:all": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e"
+  },
+  "dependencies": {
+    "@babel/parser": "^8.0.8",
+    "commander": "^15.0.0",
+    "picomatch": "^4.0.7",
+    "postcss": "^8.5.31",
+    "postcss-value-parser": "^4.2.0",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@babel/types": "^8.0.8",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.20.5",
+    "@types/picomatch": "^4.0.3",
+    "eslint": "^10.13.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.0",
+    "vitest": "^5.0.5"
+  }
+}
