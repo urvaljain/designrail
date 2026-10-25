@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "tokens": {
+    "color.a": { "type": "color", "value": "{color.b}" },
+    "color.b": { "type": "color", "value": "{color.c}" },
+    "color.c": { "type": "color", "value": "{color.a}" },
+    "color.d": { "type": "color", "value": "{color.missing}" }
+  }
+}
