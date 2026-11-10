@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+/*
+ * Evident design tokens. One accent (evergreen) for actions, one highlight (marker yellow)
+ * reserved for quoted evidence, and paper-toned neutrals. Every text/background pair below
+ * meets WCAG AA (4.5:1) in both themes; the pairs are listed in docs/06-design-system.md.
+ */
+@theme {
+  --color-paper: #faf8f3;
+  --color-surface: #ffffff;
+  --color-sunken: #f1eee6;
+  --color-ink: #1a1d1a;
+  --color-muted: #555d56;
+  --color-line: #ddd8cb;
+  --color-line-strong: #8a8f86;
+  --color-accent: #0f5c4a;
+  --color-accent-hover: #0b4a3b;
+  --color-accent-fg: #ffffff;
+  --color-accent-soft: #e0efe9;
+  --color-accent-ink: #0b4a3b;
+  --color-mark: #fff0b3;
+  --color-mark-ink: #2b2500;
+  --color-good: #0b5a34;
+  --color-good-soft: #dff1e5;
+  --color-warn: #7a4300;
+  --color-warn-soft: #fbecd2;
+  --color-bad: #9a2222;
+  --color-bad-soft: #fae6e3;
+  --color-info: #1c4a86;
+  --color-info-soft: #e3ecf8;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, ui-serif, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --radius-card: 0.625rem;
+  --radius-control: 0.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-paper: #111412;
+    --color-surface: #191d1a;
+    --color-sunken: #0c0e0d;
+    --color-ink: #eceee9;
+    --color-muted: #a8b0a8;
+    --color-line: #2d332e;
+    --color-line-strong: #737b73;
+    --color-accent: #7ad6ba;
+    --color-accent-hover: #96e2ca;
+    --color-accent-fg: #06261d;
+    --color-accent-soft: #15302a;
+    --color-accent-ink: #9fe5cf;
+    --color-mark: #4b4210;
+    --color-mark-ink: #fdf3c4;
+    --color-good: #86dba6;
+    --color-good-soft: #143022;
+    --color-warn: #f0c27a;
+    --color-warn-soft: #3a2a10;
+    --color-bad: #f2a29b;
+    --color-bad-soft: #3b1a18;
+    --color-info: #a3c4f3;
+    --color-info-soft: #172a45;
+  }
+}
+
+html {
+  color-scheme: light dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: 1.55;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+h1,
+h2,
+.display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+mark {
+  background: var(--color-mark);
+  color: var(--color-mark-ink);
+  padding: 0.05em 0.2em;
+  border-radius: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

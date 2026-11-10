@@ -1,6 +1,6 @@
 import type { z } from "zod";
 import { db, json } from "../db";
-import { assist, type AssistResult, type Verified } from "../llm/router";
+import { assist, getProvider, type AssistResult, type Verified } from "../llm/router";
 import type { StructuredRequest } from "../llm/types";
 
 /**
@@ -62,6 +62,8 @@ export class AgentRun {
   inputTokens = 0;
   outputTokens = 0;
   costUsd = 0;
+  /** False when the user's monthly allowance of model-backed runs is used up. */
+  llmAllowed = true;
 
   /** Call a tool. Input is validated against the tool's schema before the tool runs. */
   async call<I, O>(t: Tool<I, O>, input: I): Promise<O> {
@@ -85,7 +87,9 @@ export class AgentRun {
 
   /** Ask a model for help, with a deterministic fallback and a grounding check. Logged as a step. */
   async assist<T>(req: StructuredRequest<T>, fallback: () => T, verify?: (data: T) => Verified<T>): Promise<AssistResult<T>> {
-    const res = await assist(req, fallback, verify);
+    const res: AssistResult<T> = this.llmAllowed
+      ? await assist(req, fallback, verify)
+      : { data: fallback(), source: "deterministic", degradedReason: "ai_allowance_reached", rejected: [], provider: "deterministic", model: null, usage: { inputTokens: 0, outputTokens: 0 }, costUsd: 0, latencyMs: 0 };
     this.inputTokens += res.usage.inputTokens;
     this.outputTokens += res.usage.outputTokens;
     this.costUsd += res.costUsd;
@@ -136,6 +140,7 @@ export async function runAgent<T>(
 ): Promise<AgentOutcome<T>> {
   const run = new AgentRun();
   const started = Date.now();
+  if (meta.userId && getProvider()) run.llmAllowed = (await aiAllowance(meta.userId)).remaining > 0;
   let output: T | undefined;
   let error: string | undefined;
   try {
@@ -168,4 +173,13 @@ export async function runAgent<T>(
   });
   if (error) throw new AgentFailure(error, row.id);
   return { runId: row.id, status, output: output as T, notes: run.notes };
+}
+
+/** Monthly allowance of model-backed agent runs. Deterministic runs are never counted or limited. */
+export async function aiAllowance(userId: string, now: Date = new Date()): Promise<{ used: number; limit: number; remaining: number }> {
+  const user = await db.user.findUnique({ where: { id: userId }, select: { plan: true } });
+  const limit = Number(user?.plan === "plus" ? (process.env.AI_RUNS_PLUS ?? 300) : (process.env.AI_RUNS_FREE ?? 30));
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const used = await db.agentRun.count({ where: { userId, createdAt: { gte: monthStart }, provider: { not: "deterministic" } } });
+  return { used, limit, remaining: Math.max(0, limit - used) };
 }
