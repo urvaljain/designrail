@@ -1,0 +1,343 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Identity ────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String?
+  plan         String   @default("free") // free | plus
+  createdAt    DateTime @default(now())
+
+  sessions      Session[]
+  oauthAccounts OAuthAccount[]
+  profile       Profile?
+  resumes       Resume[]
+  matches       JobMatch[]
+  applications  Application[]
+  reminders     Reminder[]
+  drafts        OutreachDraft[]
+  interviews    InterviewSession[]
+  roadmaps      Roadmap[]
+  agentRuns     AgentRun[]
+}
+
+model OAuthAccount {
+  id             String   @id @default(cuid())
+  provider       String
+  providerUserId String
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+}
+
+model Session {
+  id        String   @id // sha256 of the cookie token; the raw token is never stored
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Profile {
+  userId         String   @id
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stage          String   @default("student") // student | graduate | early_career
+  targetRoles    String[] @default([])
+  locations      String[] @default([])
+  remoteOk       Boolean  @default(true)
+  graduationYear Int?
+  activeResumeId String?
+  updatedAt      DateTime @updatedAt
+}
+
+model Resume {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  filename  String
+  rawText   String   @db.Text
+  parsed    Json
+  warnings  String[] @default([])
+  status    String // parsed | needs_review | failed
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// ── Jobs ────────────────────────────────────────────────────────────────
+
+model Source {
+  id             String    @id @default(cuid())
+  kind           String // greenhouse | lever | ashby | demo
+  slug           String
+  name           String
+  isSynthetic    Boolean   @default(false)
+  enabled        Boolean   @default(true)
+  lastSyncAt     DateTime?
+  lastSyncStatus String?
+  lastSyncError  String?
+  jobs           Job[]
+
+  @@unique([kind, slug])
+}
+
+model Job {
+  id              String    @id @default(cuid())
+  sourceId        String
+  source          Source    @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  externalId      String
+  companyName     String
+  title           String
+  location        String?
+  workMode        String    @default("unknown") // remote | hybrid | onsite | unknown
+  employmentType  String?
+  level           String    @default("unknown") // intern | entry | mid | senior | unknown
+  description     String    @db.Text
+  requirements    Json
+  applyUrl        String
+  salaryMin       Int?
+  salaryMax       Int?
+  salaryCurrency  String?
+  salaryPeriod    String?
+  salaryStatus    String    @default("not_disclosed") // employer_stated | not_disclosed | rejected_implausible
+  postedAt        DateTime?
+  firstSeenAt     DateTime  @default(now())
+  lastSeenAt      DateTime  @default(now())
+  lastVerifiedAt  DateTime?
+  verifyStatus    String? // listed_by_source | link_ok | link_dead | link_unreachable
+  status          String    @default("open") // open | closed
+  closedReason    String?
+  contentHash     String
+  dedupeKey       String
+  duplicateOfId   String?
+  isSynthetic     Boolean   @default(false)
+  integrityFlags  Json      @default("[]")
+  searchVector    Unsupported("tsvector")?
+
+  matches      JobMatch[]
+  applications Application[]
+
+  @@unique([sourceId, externalId])
+  @@index([dedupeKey])
+  @@index([status, postedAt])
+}
+
+model JobMatch {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId      String
+  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resumeId   String
+  score      Int
+  verdict    String // apply | stretch | skip | unknown
+  confidence String // high | medium | low
+  breakdown  Json
+  computedAt DateTime @default(now())
+
+  @@unique([userId, jobId, resumeId])
+  @@index([userId, score])
+}
+
+// ── Applications ────────────────────────────────────────────────────────
+
+model Application {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId     String
+  job       Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  status    String    @default("saved") // saved | applied | screening | interview | offer | rejected | withdrawn
+  pinned    Boolean   @default(false)
+  appliedAt DateTime?
+  notes     String?   @db.Text
+  kit       Json?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  events    ApplicationEvent[]
+  reminders Reminder[]
+  drafts    OutreachDraft[]
+
+  @@unique([userId, jobId])
+  @@index([userId, status])
+}
+
+model ApplicationEvent {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  type          String // created | status_changed | note | reminder | outreach
+  fromStatus    String?
+  toStatus      String?
+  note          String?
+  at            DateTime    @default(now())
+
+  @@index([applicationId, at])
+}
+
+model Reminder {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  kind          String // follow_up | thank_you | decide | check_status
+  message       String
+  rationale     String
+  dueAt         DateTime
+  status        String      @default("pending") // pending | done | dismissed
+  dedupeKey     String      @unique
+  createdAt     DateTime    @default(now())
+
+  @@index([userId, status, dueAt])
+}
+
+model OutreachDraft {
+  id             String      @id @default(cuid())
+  userId         String
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId  String
+  application    Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  channel        String // email | linkedin
+  purpose        String // follow_up | thank_you | intro
+  recipientName  String?
+  recipientTitle String?
+  subject        String?
+  body           String      @db.Text
+  status         String      @default("draft") // draft | approved | sent_by_user | discarded
+  grounding      Json
+  approvedAt     DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([userId, status])
+}
+
+// ── Interview practice ──────────────────────────────────────────────────
+
+model InterviewSession {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId       String?
+  resumeId    String?
+  title       String
+  status      String    @default("active") // active | completed | abandoned
+  plan        Json
+  summary     Json?
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  turns InterviewTurn[]
+
+  @@index([userId, createdAt])
+}
+
+model InterviewTurn {
+  id         String           @id @default(cuid())
+  sessionId  String
+  session    InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  index      Int
+  question   Json
+  answer     String?          @db.Text
+  evaluation Json?
+  answeredAt DateTime?
+
+  @@unique([sessionId, index])
+}
+
+model Roadmap {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scope     String // "portfolio" or a job id
+  content   Json
+  createdAt DateTime @default(now())
+
+  @@unique([userId, scope])
+}
+
+// ── Agent audit log ─────────────────────────────────────────────────────
+
+model AgentRun {
+  id           String   @id @default(cuid())
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agent        String
+  trigger      String
+  status       String // ok | degraded | failed
+  inputSummary Json
+  output       Json?
+  provider     String
+  model        String?
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  costUsd      Float    @default(0)
+  latencyMs    Int      @default(0)
+  notes        String[] @default([])
+  error        String?
+  createdAt    DateTime @default(now())
+
+  steps AgentStep[]
+
+  @@index([userId, createdAt])
+  @@index([agent, createdAt])
+}
+
+model AgentStep {
+  id        String   @id @default(cuid())
+  runId     String
+  run       AgentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  index     Int
+  tool      String
+  input     Json
+  output    Json?
+  status    String // ok | error | rejected
+  latencyMs Int      @default(0)
+  error     String?
+
+  @@index([runId, index])
+}
+
+// ── Infrastructure ──────────────────────────────────────────────────────
+
+model BackgroundJob {
+  id             String    @id @default(cuid())
+  type           String
+  payload        Json
+  status         String    @default("queued") // queued | running | done | dead
+  attempts       Int       @default(0)
+  maxAttempts    Int       @default(5)
+  runAt          DateTime  @default(now())
+  lockedAt       DateTime?
+  lockedBy       String?
+  lastError      String?
+  idempotencyKey String?   @unique
+  createdAt      DateTime  @default(now())
+  finishedAt     DateTime?
+
+  @@index([status, runAt])
+}
+
+model RateLimit {
+  key         String
+  windowStart DateTime
+  count       Int      @default(0)
+
+  @@id([key, windowStart])
+}
