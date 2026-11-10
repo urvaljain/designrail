@@ -35,13 +35,15 @@ export async function enqueue(type: string, payload: unknown, opts: { runAt?: Da
   return { id: row.id, created: true };
 }
 
-export async function claim(workerId: string, now: Date = new Date()): Promise<QueueJob | null> {
+export async function claim(workerId: string, now: Date = new Date(), types?: string[]): Promise<QueueJob | null> {
   const stale = new Date(now.getTime() - VISIBILITY_TIMEOUT_MS);
+  // A worker can be restricted to some job types (for example, a pool dedicated to slow syncs).
+  const typeFilter = types && types.length > 0 ? Prisma.sql`AND "type" IN (${Prisma.join(types)})` : Prisma.empty;
   const rows = await db.$queryRaw<QueueJob[]>(Prisma.sql`
     UPDATE "BackgroundJob" SET "status" = 'running', "lockedAt" = ${now}, "lockedBy" = ${workerId}, "attempts" = "attempts" + 1
     WHERE "id" = (
       SELECT "id" FROM "BackgroundJob"
-      WHERE ("status" = 'queued' AND "runAt" <= ${now}) OR ("status" = 'running' AND "lockedAt" < ${stale})
+      WHERE (("status" = 'queued' AND "runAt" <= ${now}) OR ("status" = 'running' AND "lockedAt" < ${stale})) ${typeFilter}
       ORDER BY "runAt" ASC
       FOR UPDATE SKIP LOCKED
       LIMIT 1
@@ -72,11 +74,11 @@ export async function fail(job: QueueJob, error: string, now: Date = new Date())
 export type Handler = (payload: unknown) => Promise<void>;
 
 /** Claim and run jobs until the queue is empty. Returns how many jobs ran. */
-export async function drain(workerId: string, handlers: Record<string, Handler>, limit = 100): Promise<{ ran: number; failed: number }> {
+export async function drain(workerId: string, handlers: Record<string, Handler>, limit = 100, types?: string[]): Promise<{ ran: number; failed: number }> {
   let ran = 0;
   let failed = 0;
   while (ran < limit) {
-    const job = await claim(workerId);
+    const job = await claim(workerId, new Date(), types);
     if (!job) break;
     ran++;
     const handler = handlers[job.type];

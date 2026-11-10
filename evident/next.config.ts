@@ -23,7 +23,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // The Docker image builds a self-contained server; local and CI runs use `next start`.
+  ...(process.env.BUILD_STANDALONE === "true" ? { output: "standalone" as const } : {}),
+  outputFileTracingRoot: import.meta.dirname,
   poweredByHeader: false,
   serverExternalPackages: ["unpdf", "mammoth"],
   experimental: { serverActions: { bodySizeLimit: "4mb" } },

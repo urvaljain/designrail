@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { db } from "../db";
 
 export const STATUSES = ["saved", "applied", "screening", "interview", "offer", "rejected", "withdrawn"] as const;
@@ -29,8 +30,17 @@ export async function saveJob(userId: string, jobId: string): Promise<{ id: stri
   if (!job) throw new NotFoundError("Job");
   const existing = await db.application.findUnique({ where: { userId_jobId: { userId, jobId } }, select: { id: true } });
   if (existing) return { id: existing.id, created: false };
-  const app = await db.application.create({ data: { userId, jobId, status: "saved", events: { create: { type: "created", toStatus: "saved" } } }, select: { id: true } });
-  return { id: app.id, created: true };
+  try {
+    const app = await db.application.create({ data: { userId, jobId, status: "saved", events: { create: { type: "created", toStatus: "saved" } } }, select: { id: true } });
+    return { id: app.id, created: true };
+  } catch (err) {
+    // Two simultaneous saves of the same job: the unique index picks a winner and the loser reads it back.
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      const winner = await db.application.findUniqueOrThrow({ where: { userId_jobId: { userId, jobId } }, select: { id: true } });
+      return { id: winner.id, created: false };
+    }
+    throw err;
+  }
 }
 
 export async function getApplication(userId: string, id: string) {

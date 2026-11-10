@@ -109,7 +109,7 @@ export function matchResumeToJob(resume: ParsedResume, reqs: JobRequirements): M
   } else {
     const count = (s: ItemStatus) => scorable.filter((i) => i.status === s).length;
     explanation.push(
-      `${count("demonstrated")} of ${scorable.length} checkable requirements are demonstrated in your experience or projects, ${count("listed")} are listed only, ${count("related")} are covered by a related skill, and ${count("missing")} are missing.`,
+      `Of ${scorable.length} checkable requirements: ${count("demonstrated")} demonstrated in your experience or projects, ${count("listed")} listed only, ${count("related")} covered by a related skill, ${count("missing")} missing.`,
     );
     if (musts.length > 0) explanation.push(`${musts.length - mustsMissing.length} of ${musts.length} must-have requirements have some evidence on your resume.`);
     if (expStatus === "below") explanation.push(`The role asks for ${reqs.minYears}+ years; your resume shows about ${candidateYears}. The score was reduced for this.`);
@@ -117,7 +117,7 @@ export function matchResumeToJob(resume: ParsedResume, reqs: JobRequirements): M
     explanation.push("Must-have requirements count three times as much as nice-to-haves. A skill you only list earns 60% of the credit of one you demonstrate.");
   }
   const unverifiable = items.length - scorable.length;
-  if (unverifiable > 0) explanation.push(`${unverifiable} requirement(s) could not be checked against a resume and were left out of the score.`);
+  if (unverifiable > 0) explanation.push(`${unverifiable} ${unverifiable === 1 ? "requirement" : "requirements"} could not be checked against a resume and ${unverifiable === 1 ? "was" : "were"} left out of the score.`);
 
   return {
     score,
