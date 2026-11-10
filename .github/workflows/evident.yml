@@ -1,0 +1,53 @@
+name: Evident
+
+on:
+  push:
+    branches: [main]
+    paths: ["evident/**", ".github/workflows/evident.yml"]
+  pull_request:
+    paths: ["evident/**", ".github/workflows/evident.yml"]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: evident
+
+jobs:
+  verify:
+    name: Lint, typecheck, test, build, e2e
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: evident
+          POSTGRES_PASSWORD: evident
+          POSTGRES_DB: evident_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U evident" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://evident:evident@127.0.0.1:5432/evident_test
+      TEST_DATABASE_URL: postgresql://evident:evident@127.0.0.1:5432/evident_test
+      E2E_DATABASE_URL: postgresql://evident:evident@127.0.0.1:5432/evident_test
+      APP_URL: http://127.0.0.1:3100
+      LLM_PROVIDER: none
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.x
+          cache: npm
+          cache-dependency-path: evident/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx prisma migrate deploy
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - run: npm run eval

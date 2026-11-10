@@ -1,0 +1,50 @@
+# Local production-like stack: `docker compose up --build`, then open http://localhost:3000
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: evident
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-evident}
+      POSTGRES_DB: evident
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evident"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build: { context: ., target: worker }
+    command: ["npx", "prisma", "migrate", "deploy"]
+    environment: &env
+      DATABASE_URL: postgresql://evident:${POSTGRES_PASSWORD:-evident}@db:5432/evident
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      LLM_PROVIDER: ${LLM_PROVIDER:-none}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-}
+      JOB_SOURCES: ${JOB_SOURCES:-}
+      ENABLE_DEMO_SOURCE: ${ENABLE_DEMO_SOURCE:-true}
+    depends_on:
+      db: { condition: service_healthy }
+
+  web:
+    build: { context: ., target: web }
+    environment: *env
+    ports: ["3000:3000"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  worker:
+    build: { context: ., target: worker }
+    environment: *env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    restart: unless-stopped
+
+volumes:
+  pgdata:

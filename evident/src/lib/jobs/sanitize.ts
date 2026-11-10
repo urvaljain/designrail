@@ -74,8 +74,8 @@ export function htmlToText(input: string): { text: string; hiddenText: string[] 
 const INJECTION_PATTERNS: RegExp[] = [
   /\b(ignore|disregard|forget|override)\b[^.\n]{0,40}\b(previous|prior|above|earlier|all|any|your)\b[^.\n]{0,30}\b(instructions?|prompts?|rules?|guidelines?|context)\b/i,
   /\b(system|developer)\s+(prompt|message|instructions?)\b/i,
-  /\byou are (now|no longer)\b[^.\n]{0,60}/i,
-  /\b(as an? |dear |attention[,:]? )(ai|llm|language model|assistant|chatbot|gpt|claude)\b/i,
+  /\byou are (now|no longer) (an?|the|my|our|in|acting|operating|playing|required|instructed|allowed|free)\b[^.\n]{0,60}/i,
+  /\b(as an? |dear |attention[,:]? )(ai\b|llm\b|language model|ai assistant|chatbot|gpt\b|claude\b)/i,
   /\b(ai|llm|language model|assistant|chatbot|screening (tool|system|model)|ranking (tool|system|model))s?\b[^.\n]{0,60}\b(must|should|shall|need to|are instructed to|are required to)\b[^.\n]{0,60}\b(rank|rate|score|recommend|mark|classify|output|respond|reply|say|tell|include|report)\b/i,
   /\b(rank|rate|score|mark|classify|recommend)\b[^.\n]{0,30}\b(this|the) (job|role|posting|listing|candidate|applicant)\b[^.\n]{0,40}\b(as|at)\b[^.\n]{0,20}\b(100|10\/10|top|highest|perfect|best|strong match|#1)\b/i,
   /\b(do not|don't|never)\b[^.\n]{0,30}\b(mention|reveal|disclose|flag|warn|tell)\b[^.\n]{0,40}\b(user|candidate|applicant|this instruction)\b/i,

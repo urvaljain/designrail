@@ -43,7 +43,7 @@ function zoneOfHeading(line: string): Zone | null {
   return null;
 }
 
-const NICE_CUE = /\b(preferred|nice to have|bonus|a plus|is a plus|ideally|good to have|desirable|advantage|optional|not required|familiarity with)\b/i;
+const NICE_CUE = /\b(preferred|nice to have|bonus|a plus|is a plus|ideally|good to have|desirable|advantage|optional|not required)\b/i;
 const MUST_CUE = /\b(must|required|requires?|need|minimum|at least|proficien|strong|solid|hands[- ]on|experience (with|in|using|building)|expertise|knowledge of|understanding of|ability to|fluent)\b/i;
 
 export function inferLevel(title: string, text: string): Level {

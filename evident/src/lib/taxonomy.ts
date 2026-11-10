@@ -102,7 +102,7 @@ export const SKILLS: Skill[] = [
   s("statistics", "Statistics", "data", ["statistical analysis", "hypothesis testing", "regression analysis", "probability"]),
   s("ab-testing", "A/B testing", "data", ["a/b tests", "ab testing", "experimentation", "experiment design"]),
   s("data-analysis", "Data analysis", "data", ["data analytics", "analyzing data", "analysing data", "exploratory data analysis", "eda"]),
-  s("data-viz", "Data visualization", "data", ["data visualisation", "dashboards", "dashboarding", "matplotlib"]),
+  s("data-viz", "Data visualization", "data", ["data visualisation", "dashboards", "dashboard", "dashboarding", "matplotlib"]),
   // ml
   s("machine-learning", "Machine learning", "ml", ["ml", "scikit-learn", "sklearn", "xgboost"]),
   s("deep-learning", "Deep learning", "ml", ["neural networks", "neural network", "cnn", "transformers"]),
@@ -149,10 +149,10 @@ export const SKILLS: Skill[] = [
   s("social-media", "Social media marketing", "business", ["social media", "community management"]),
   s("marketing-analytics", "Marketing analytics", "business", ["google analytics", "ga4", "campaign analysis", "performance marketing"]),
   s("crm", "CRM tools", "business", ["crm", "salesforce", "hubspot"]),
-  s("sales", "Sales", "business", ["business development", "lead generation", "cold calling", "prospecting"]),
+  s("sales", "Sales and business development", "business", ["business development", "lead generation", "cold calling", "prospecting", "b2b sales", "inside sales", "sales targets", "sales experience", "sales pipeline"]),
   s("customer-success", "Customer success", "business", ["customer support", "account management", "customer service"]),
   s("finance", "Financial modeling", "business", ["financial modelling", "financial analysis", "valuation", "accounting"]),
-  s("operations", "Operations", "business", ["process improvement", "supply chain", "logistics"]),
+  s("operations", "Operations management", "business", ["process improvement", "supply chain", "business operations"]),
   // soft
   s("communication", "Communication", "soft", ["written communication", "verbal communication", "presentation skills", "public speaking", "technical writing", "documentation"]),
   s("leadership", "Leadership", "soft", ["team lead", "led a team", "mentoring", "mentorship", "mentored"]),
@@ -168,7 +168,8 @@ export function skillById(id: string): Skill | undefined {
 function aliasRegex(alias: string): string {
   // Word boundaries that also work for aliases containing symbols (c++, .net, ci/cd).
   const body = escapeRegex(alias).replace(/\\ /g, "[\\s-]+").replace(/ /g, "[\\s-]+");
-  return `(?<![a-z0-9+#])${body}(?![a-z0-9+#]|\\.[a-z])`;
+  // The "." in the lookbehind stops "js" matching inside "Node.js" while still allowing ".net".
+  return `(?<![a-z0-9+#.])${body}(?![a-z0-9+#]|\\.[a-z])`;
 }
 
 const COMPILED: { skill: Skill; re: RegExp }[] = SKILLS.map((skill) => {
