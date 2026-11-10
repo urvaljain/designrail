@@ -133,7 +133,7 @@ export function deterministicCoverNote(match: MatchResult, resume: ParsedResume,
 export function verifyCoverNote(note: string, resume: ParsedResume, job: { title: string; companyName: string }): string[] {
   const problems: string[] = [];
   const resumeText = resume.lines.map((l) => l.text).join("\n");
-  const allowedNumbers = new Set((`${resumeText}\n${job.title}`.match(/\d+(?:[.,]\d+)?/g) ?? []).map((n) => n.replace(/,/g, "")));
+  const allowedNumbers = new Set((`${resumeText}\n${job.title}\n${job.companyName}`.match(/\d+(?:[.,]\d+)?/g) ?? []).map((n) => n.replace(/,/g, "")));
   for (const n of note.match(/\d+(?:[.,]\d+)?/g) ?? []) {
     if (!allowedNumbers.has(n.replace(/,/g, ""))) problems.push(`mentions the figure "${n}", which is not on the resume`);
   }
